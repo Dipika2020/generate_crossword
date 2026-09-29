@@ -1,82 +1,111 @@
-# \# Crossword Generator
+# Crossword Generator
 
-# 
+A Flutter application for generating and displaying crossword puzzles. This project is being developed incrementally while following Google's Flutter Word Puzzle Codelab, with a focus on Flutter architecture, Riverpod state management, immutable data models, and crossword-generation algorithms.
 
-# A Flutter-based crossword puzzle generator built while following Google's Flutter Word Puzzle Codelab.
+## Tech Stack
 
-# 
+* Flutter / Dart
+* Riverpod
+* built_value / built_collection
+* build_runner
+* two_dimensional_scrollables
 
-# \## Current Progress
+## Current Implementation
 
-# 
+### 1. Word List
 
-# \### Module 4 – Crossword Data Model \& Grid
+* Loads words from `assets/words.txt`
+* Converts words to lowercase
+* Removes whitespace
+* Filters words shorter than 3 characters
+* Accepts only `a-z` characters
+* Exposes the word list through `wordListProvider`
 
-# 
+### 2. Crossword Data Model
 
-# Implemented:
+Implemented immutable models using `built_value`:
 
-# 
+* `Location` — represents an `(x, y)` grid position
+* `CrosswordWord` — represents a word, position, and direction
+* `CrosswordCharacter` — represents a character and its associated words
+* `Crossword` — represents the complete crossword grid
 
-# \- Crossword data model using `built\_value` and `built\_collection`
+Generated serialization code is maintained using `build_runner`.
 
-# \- Immutable `Location`, `CrosswordWord`, `CrosswordCharacter`, and `Crossword` models
+### 3. Crossword Generation
 
-# \- Crossword grid generation from placed words
+Implemented Riverpod providers for:
 
-# \- Random word selection using a `BuiltSet` extension
+* Crossword size selection
+* Random word selection
+* Random word direction
+* Random word placement
+* Progressive crossword generation using a stream
 
-# \- Word-list loading and validation from `assets/words.txt`
+Supported grid sizes:
 
-# \- Crossword size selection:
+| Size    | Dimensions |
+| ------- | ---------: |
+| Small   |    20 × 11 |
+| Medium  |    40 × 22 |
+| Large   |    80 × 44 |
+| XLarge  |   160 × 88 |
+| XXLarge |  500 × 500 |
 
-# &#x20; - 20 × 11
+### 4. Crossword UI
 
-# &#x20; - 40 × 22
+Implemented `CrosswordWidget` using `TableView` from `two_dimensional_scrollables`.
 
-# &#x20; - 80 × 44
+The UI currently supports:
 
-# &#x20; - 160 × 88
+* Two-dimensional scrolling
+* Dynamic grid sizing
+* Rendering generated characters
+* Crossword size selection from the app bar
 
-# &#x20; - 500 × 500
+## Current Architecture
 
-# \- Riverpod providers for crossword size and generation
+```text
+words.txt
+    ↓
+wordListProvider
+    ↓
+crosswordProvider
+    ↓
+Crossword data model
+    ↓
+CrosswordWidget
+    ↓
+TableView grid
+```
 
-# \- Streaming crossword generation with intermediate grid updates
+## Development Workflow
 
-# \- Scrollable crossword grid using `two\_dimensional\_scrollables`
+```bash
+flutter pub get
+dart run build_runner build
+flutter analyze
+flutter run -d chrome
+```
 
-# \- Responsive cell rendering using Riverpod `select`
+The project uses feature branches and incremental Git checkpoints. Each major implementation step is analyzed, tested, committed, and pushed.
 
-# \- Generated crossword displayed directly in the Flutter UI
+## Current Status
 
-# 
+🚧 **In Development**
 
-# \## Project Structure
+The application currently generates and displays randomly placed words in a configurable crossword-style grid.
 
-# 
+### Next Steps
 
-# ```text
+* Add valid crossword placement constraints
+* Validate word intersections
+* Prevent invalid overlaps
+* Keep words within grid boundaries
+* Implement crossword-generation and backtracking logic
+* Add tests
+* Polish the UI for portfolio use
 
-# lib/
+## Reference
 
-# ├── main.dart
-
-# ├── model.dart
-
-# ├── providers.dart
-
-# ├── utils.dart
-
-# └── widgets/
-
-# &#x20;   ├── crossword\_generator\_app.dart
-
-# &#x20;   └── crossword\_widget.dart
-
-# 
-
-# assets/
-
-# └── words.txt
-
+Based on Google's [Flutter Word Puzzle Codelab](https://codelabs.developers.google.com/codelabs/flutter-word-puzzle).
