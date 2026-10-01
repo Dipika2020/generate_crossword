@@ -11,3 +11,12 @@ extension RandomElements<E> on BuiltSet<E> {
     return elementAt(_random.nextInt(length));
   }
 }
+
+extension DurationFormat on Duration{
+  String get formatted{
+    final minutes  = inMinutes;
+    final seconds = inSeconds.remainder(60);
+
+    return '${minutes}m ${seconds}s';
+  }
+}
