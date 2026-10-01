@@ -1,13 +1,12 @@
 import 'dart:convert';
-import 'dart:math';
 
 import 'package:built_collection/built_collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import 'isolates.dart';
 import 'model.dart' as model;
-import 'utils.dart';
 
 part 'providers.g.dart';
 
@@ -16,8 +15,8 @@ part 'providers.g.dart';
 Future<BuiltSet<String>> wordList(Ref ref) async {
   // This codebase requires that all words consist of lowercase characters
   // in the range 'a'-'z'. Words containing uppercase letters will be
-  // lowercased, and words containing runes outside this range will
-  // be removed.
+  // lowercased, and words containing runes outside this range will be
+  // removed.
 
   final re = RegExp(r'^[a-z]+$');
   final words = await rootBundle.loadString('assets/words.txt');
@@ -66,65 +65,28 @@ class Size extends _$Size {
   }
 }
 
-/// Random number generator used when generating the crossword.
-final _random = Random();
-
 /// A provider that generates a crossword.
 @riverpod
 Stream<model.Crossword> crossword(Ref ref) async* {
   final size = ref.watch(sizeProvider);
   final wordListAsync = ref.watch(wordListProvider);
 
-  var crossword = model.Crossword.crossword(
+  final emptyCrossword = model.Crossword.crossword(
     width: size.width,
     height: size.height,
   );
 
   yield* wordListAsync.when(
-    data: (wordList) async* {
-      while (crossword.characters.length <
-          size.width * size.height * 0.8) {
-        final word = wordList.randomElement();
-
-        final direction = _random.nextBool()
-            ? model.Direction.across
-            : model.Direction.down;
-
-        final location = model.Location.at(
-          _random.nextInt(size.width),
-          _random.nextInt(size.height),
-        );
-
-        // addWord can return null when the word cannot be placed
-        // at the selected location and direction.
-        final updatedCrossword = crossword.addWord(
-          word: word,
-          direction: direction,
-          location: location,
-        );
-
-        // If the word cannot be placed, skip it and try another word.
-        if (updatedCrossword == null) {
-          continue;
-        }
-
-        crossword = updatedCrossword;
-
-        yield crossword;
-
-        await Future<void>.delayed(
-          const Duration(milliseconds: 100),
-        );
-      }
-
-      yield crossword;
-    },
+    data: (wordList) => exploreCrosswordSolutions(
+      crossword: emptyCrossword,
+      wordList: wordList,
+    ),
     error: (error, stackTrace) async* {
       debugPrint('Error loading word list: $error');
-      yield crossword;
+      yield emptyCrossword;
     },
     loading: () async* {
-      yield crossword;
+      yield emptyCrossword;
     },
   );
 }
