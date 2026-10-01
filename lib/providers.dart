@@ -21,6 +21,7 @@ Future<BuiltSet<String>> wordList(Ref ref) async {
 
   final re = RegExp(r'^[a-z]+$');
   final words = await rootBundle.loadString('assets/words.txt');
+
   return const LineSplitter()
       .convert(words)
       .toBuiltSet()
@@ -40,7 +41,10 @@ enum CrosswordSize {
   xlarge(width: 160, height: 88),
   xxlarge(width: 500, height: 500);
 
-  const CrosswordSize({required this.width, required this.height});
+  const CrosswordSize({
+    required this.width,
+    required this.height,
+  });
 
   final int width;
   final int height;
@@ -62,8 +66,7 @@ class Size extends _$Size {
   }
 }
 
-
-///add crossword stream provider
+/// Random number generator used when generating the crossword.
 final _random = Random();
 
 /// A provider that generates a crossword.
@@ -92,11 +95,20 @@ Stream<model.Crossword> crossword(Ref ref) async* {
           _random.nextInt(size.height),
         );
 
-        crossword = crossword.addWord(
+        // addWord can return null when the word cannot be placed
+        // at the selected location and direction.
+        final updatedCrossword = crossword.addWord(
           word: word,
           direction: direction,
           location: location,
         );
+
+        // If the word cannot be placed, skip it and try another word.
+        if (updatedCrossword == null) {
+          continue;
+        }
+
+        crossword = updatedCrossword;
 
         yield crossword;
 
