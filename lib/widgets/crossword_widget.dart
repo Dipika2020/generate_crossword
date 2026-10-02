@@ -11,6 +11,7 @@ class CrosswordWidget extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final size = ref.watch(sizeProvider);
+
     return TableView.builder(
       diagonalDragBehavior: DiagonalDragBehavior.free,
       cellBuilder: _buildCell,
@@ -27,10 +28,12 @@ class CrosswordWidget extends ConsumerWidget {
     return TableViewCell(
       child: Consumer(
         builder: (context, ref, _) {
+          // Module 7: The crossword provider now exposes a WorkQueue.
+          // The actual crossword is available through workQueue.crossword.
           final character = ref.watch(
-            crosswordProvider.select(
-              (crosswordAsync) => crosswordAsync.when(
-                data: (crossword) => crossword.characters[location],
+            workQueueProvider.select(
+              (workQueueAsync) => workQueueAsync.when(
+                data: (workQueue) => workQueue.crossword.characters[location],
                 error: (error, stackTrace) => null,
                 loading: () => null,
               ),
