@@ -41,10 +41,7 @@ enum CrosswordSize {
   xlarge(width: 160, height: 88),
   xxlarge(width: 500, height: 500);
 
-  const CrosswordSize({
-    required this.width,
-    required this.height,
-  });
+  const CrosswordSize({required this.width, required this.height});
 
   final int width;
   final int height;
@@ -68,6 +65,7 @@ class Size extends _$Size {
 
 @riverpod
 Stream<model.WorkQueue> workQueue(Ref ref) async* {
+  final workers = ref.watch(workerCountProvider);
   final size = ref.watch(sizeProvider);
   final wordListAsync = ref.watch(wordListProvider);
 
@@ -89,6 +87,7 @@ Stream<model.WorkQueue> workQueue(Ref ref) async* {
     data: (wordList) => exploreCrosswordSolutions(
       crossword: emptyCrossword,
       wordList: wordList,
+      maxWorkerCount: workers.count,
     ),
     error: (error, stackTrace) async* {
       debugPrint('Error loading word list: $error');
@@ -191,10 +190,39 @@ class DisplayInfo extends _$DisplayInfo {
   model.DisplayInfo build() => ref
       .watch(workQueueProvider)
       .when(
-        data: (workQueue) => model.DisplayInfo.from(
-          workQueue: workQueue,
-        ),
+        data: (workQueue) => model.DisplayInfo.from(workQueue: workQueue),
         error: (error, stackTrace) => model.DisplayInfo.empty,
         loading: () => model.DisplayInfo.empty,
       );
+}
+
+enum BackgroundWorkers {
+  one(1),
+  two(2),
+  four(4),
+  eight(8),
+  sixteen(16),
+  thirtyTwo(32),
+  sixtyFour(64),
+  oneTwentyEight(128);
+
+  const BackgroundWorkers(this.count);
+
+  final int count;
+
+  String get label => count.toString();
+}
+
+/// A provider that holds the current number of background workers to use.
+@Riverpod(keepAlive: true)
+class WorkerCount extends _$WorkerCount {
+  var _count = BackgroundWorkers.four;
+
+  @override
+  BackgroundWorkers build() => _count;
+
+  void setCount(BackgroundWorkers count) {
+    _count = count;
+    ref.invalidateSelf();
+  }
 }

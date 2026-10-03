@@ -147,7 +147,7 @@ final class WorkQueueProvider
   }
 }
 
-String _$workQueueHash() => r'3e484a5afe91003b1523ffb42caa6b24967376a6';
+String _$workQueueHash() => r'dca73cc7fb2cef3f5dcfdcc3a0926167e88c1083';
 
 @ProviderFor(StartTime)
 const startTimeProvider = StartTimeProvider._();
@@ -406,6 +406,65 @@ abstract class _$DisplayInfo extends $Notifier<model.DisplayInfo> {
             as $ClassProviderElement<
               AnyNotifier<model.DisplayInfo, model.DisplayInfo>,
               model.DisplayInfo,
+              Object?,
+              Object?
+            >;
+    element.handleValue(ref, created);
+  }
+}
+
+/// A provider that holds the current number of background workers to use.
+
+@ProviderFor(WorkerCount)
+const workerCountProvider = WorkerCountProvider._();
+
+/// A provider that holds the current number of background workers to use.
+final class WorkerCountProvider
+    extends $NotifierProvider<WorkerCount, BackgroundWorkers> {
+  /// A provider that holds the current number of background workers to use.
+  const WorkerCountProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'workerCountProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$workerCountHash();
+
+  @$internal
+  @override
+  WorkerCount create() => WorkerCount();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(BackgroundWorkers value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<BackgroundWorkers>(value),
+    );
+  }
+}
+
+String _$workerCountHash() => r'36dad09ba2cfe03b0879e7bf20059cec12e5118c';
+
+/// A provider that holds the current number of background workers to use.
+
+abstract class _$WorkerCount extends $Notifier<BackgroundWorkers> {
+  BackgroundWorkers build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final created = build();
+    final ref = this.ref as $Ref<BackgroundWorkers, BackgroundWorkers>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<BackgroundWorkers, BackgroundWorkers>,
+              BackgroundWorkers,
               Object?,
               Object?
             >;
