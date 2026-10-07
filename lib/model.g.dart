@@ -29,6 +29,21 @@ Serializers _$serializers =
           ..addBuilderFactory(
             const FullType(BuiltMap, const [
               const FullType(Location),
+              const FullType(BuiltMap, const [
+                const FullType(Direction),
+                const FullType(BuiltList, const [const FullType(String)]),
+              ]),
+            ]),
+            () =>
+                MapBuilder<Location, BuiltMap<Direction, BuiltList<String>>>(),
+          )
+          ..addBuilderFactory(
+            const FullType(BuiltList, const [const FullType(CrosswordWord)]),
+            () => ListBuilder<CrosswordWord>(),
+          )
+          ..addBuilderFactory(
+            const FullType(BuiltMap, const [
+              const FullType(Location),
               const FullType(Direction),
             ]),
             () => MapBuilder<Location, Direction>(),
@@ -609,15 +624,23 @@ class _$CrosswordPuzzleGameSerializer
         object.crossword,
         specifiedType: const FullType(Crossword),
       ),
-      'workQueue',
+      'alternateWords',
       serializers.serialize(
-        object.workQueue,
-        specifiedType: const FullType(WorkQueue),
+        object.alternateWords,
+        specifiedType: const FullType(BuiltMap, const [
+          const FullType(Location),
+          const FullType(BuiltMap, const [
+            const FullType(Direction),
+            const FullType(BuiltList, const [const FullType(String)]),
+          ]),
+        ]),
       ),
-      'displayInfo',
+      'selectedWords',
       serializers.serialize(
-        object.displayInfo,
-        specifiedType: const FullType(DisplayInfo),
+        object.selectedWords,
+        specifiedType: const FullType(BuiltList, const [
+          const FullType(CrosswordWord),
+        ]),
       ),
     ];
 
@@ -647,22 +670,29 @@ class _$CrosswordPuzzleGameSerializer
                 as Crossword,
           );
           break;
-        case 'workQueue':
-          result.workQueue.replace(
+        case 'alternateWords':
+          result.alternateWords.replace(
             serializers.deserialize(
-                  value,
-                  specifiedType: const FullType(WorkQueue),
-                )!
-                as WorkQueue,
+              value,
+              specifiedType: const FullType(BuiltMap, const [
+                const FullType(Location),
+                const FullType(BuiltMap, const [
+                  const FullType(Direction),
+                  const FullType(BuiltList, const [const FullType(String)]),
+                ]),
+              ]),
+            )!,
           );
           break;
-        case 'displayInfo':
-          result.displayInfo.replace(
+        case 'selectedWords':
+          result.selectedWords.replace(
             serializers.deserialize(
                   value,
-                  specifiedType: const FullType(DisplayInfo),
+                  specifiedType: const FullType(BuiltList, const [
+                    const FullType(CrosswordWord),
+                  ]),
                 )!
-                as DisplayInfo,
+                as BuiltList<Object?>,
           );
           break;
       }
@@ -1480,9 +1510,10 @@ class _$CrosswordPuzzleGame extends CrosswordPuzzleGame {
   @override
   final Crossword crossword;
   @override
-  final WorkQueue workQueue;
+  final BuiltMap<Location, BuiltMap<Direction, BuiltList<String>>>
+  alternateWords;
   @override
-  final DisplayInfo displayInfo;
+  final BuiltList<CrosswordWord> selectedWords;
 
   factory _$CrosswordPuzzleGame([
     void Function(CrosswordPuzzleGameBuilder)? updates,
@@ -1490,8 +1521,8 @@ class _$CrosswordPuzzleGame extends CrosswordPuzzleGame {
 
   _$CrosswordPuzzleGame._({
     required this.crossword,
-    required this.workQueue,
-    required this.displayInfo,
+    required this.alternateWords,
+    required this.selectedWords,
   }) : super._();
   @override
   CrosswordPuzzleGame rebuild(
@@ -1507,16 +1538,16 @@ class _$CrosswordPuzzleGame extends CrosswordPuzzleGame {
     if (identical(other, this)) return true;
     return other is CrosswordPuzzleGame &&
         crossword == other.crossword &&
-        workQueue == other.workQueue &&
-        displayInfo == other.displayInfo;
+        alternateWords == other.alternateWords &&
+        selectedWords == other.selectedWords;
   }
 
   @override
   int get hashCode {
     var _$hash = 0;
     _$hash = $jc(_$hash, crossword.hashCode);
-    _$hash = $jc(_$hash, workQueue.hashCode);
-    _$hash = $jc(_$hash, displayInfo.hashCode);
+    _$hash = $jc(_$hash, alternateWords.hashCode);
+    _$hash = $jc(_$hash, selectedWords.hashCode);
     _$hash = $jf(_$hash);
     return _$hash;
   }
@@ -1525,8 +1556,8 @@ class _$CrosswordPuzzleGame extends CrosswordPuzzleGame {
   String toString() {
     return (newBuiltValueToStringHelper(r'CrosswordPuzzleGame')
           ..add('crossword', crossword)
-          ..add('workQueue', workQueue)
-          ..add('displayInfo', displayInfo))
+          ..add('alternateWords', alternateWords)
+          ..add('selectedWords', selectedWords))
         .toString();
   }
 }
@@ -1539,15 +1570,20 @@ class CrosswordPuzzleGameBuilder
   CrosswordBuilder get crossword => _$this._crossword ??= CrosswordBuilder();
   set crossword(CrosswordBuilder? crossword) => _$this._crossword = crossword;
 
-  WorkQueueBuilder? _workQueue;
-  WorkQueueBuilder get workQueue => _$this._workQueue ??= WorkQueueBuilder();
-  set workQueue(WorkQueueBuilder? workQueue) => _$this._workQueue = workQueue;
+  MapBuilder<Location, BuiltMap<Direction, BuiltList<String>>>? _alternateWords;
+  MapBuilder<Location, BuiltMap<Direction, BuiltList<String>>>
+  get alternateWords => _$this._alternateWords ??=
+      MapBuilder<Location, BuiltMap<Direction, BuiltList<String>>>();
+  set alternateWords(
+    MapBuilder<Location, BuiltMap<Direction, BuiltList<String>>>?
+    alternateWords,
+  ) => _$this._alternateWords = alternateWords;
 
-  DisplayInfoBuilder? _displayInfo;
-  DisplayInfoBuilder get displayInfo =>
-      _$this._displayInfo ??= DisplayInfoBuilder();
-  set displayInfo(DisplayInfoBuilder? displayInfo) =>
-      _$this._displayInfo = displayInfo;
+  ListBuilder<CrosswordWord>? _selectedWords;
+  ListBuilder<CrosswordWord> get selectedWords =>
+      _$this._selectedWords ??= ListBuilder<CrosswordWord>();
+  set selectedWords(ListBuilder<CrosswordWord>? selectedWords) =>
+      _$this._selectedWords = selectedWords;
 
   CrosswordPuzzleGameBuilder();
 
@@ -1555,8 +1591,8 @@ class CrosswordPuzzleGameBuilder
     final $v = _$v;
     if ($v != null) {
       _crossword = $v.crossword.toBuilder();
-      _workQueue = $v.workQueue.toBuilder();
-      _displayInfo = $v.displayInfo.toBuilder();
+      _alternateWords = $v.alternateWords.toBuilder();
+      _selectedWords = $v.selectedWords.toBuilder();
       _$v = null;
     }
     return this;
@@ -1582,18 +1618,18 @@ class CrosswordPuzzleGameBuilder
           _$v ??
           _$CrosswordPuzzleGame._(
             crossword: crossword.build(),
-            workQueue: workQueue.build(),
-            displayInfo: displayInfo.build(),
+            alternateWords: alternateWords.build(),
+            selectedWords: selectedWords.build(),
           );
     } catch (_) {
       late String _$failedField;
       try {
         _$failedField = 'crossword';
         crossword.build();
-        _$failedField = 'workQueue';
-        workQueue.build();
-        _$failedField = 'displayInfo';
-        displayInfo.build();
+        _$failedField = 'alternateWords';
+        alternateWords.build();
+        _$failedField = 'selectedWords';
+        selectedWords.build();
       } catch (e) {
         throw BuiltValueNestedFieldError(
           r'CrosswordPuzzleGame',
