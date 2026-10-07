@@ -1,5 +1,4 @@
 import 'package:built_collection/built_collection.dart';
-
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
 import 'package:characters/characters.dart';
@@ -9,7 +8,6 @@ part 'model.g.dart';
 
 /// A location in a crossword.
 abstract class Location implements Built<Location, LocationBuilder> {
-  /// Serializes and deserializes the [Location] class.
   static Serializer<Location> get serializer => _$locationSerializer;
 
   /// The horizontal part of the location. The location is 0 based.
@@ -18,51 +16,45 @@ abstract class Location implements Built<Location, LocationBuilder> {
   /// The vertical part of the location. The location is 0 based.
   int get y;
 
-  /// Returns a new location that is one step to the left.
+  /// Returns a new location that is one step to the left of this location.
   Location get left => rebuild((b) => b.x = x - 1);
 
-  /// Returns a new location that is one step to the right.
+  /// Returns a new location that is one step to the right of this location.
   Location get right => rebuild((b) => b.x = x + 1);
 
-  /// Returns a new location that is one step up.
+  /// Returns a new location that is one step up from this location.
   Location get up => rebuild((b) => b.y = y - 1);
 
-  /// Returns a new location that is one step down.
+  /// Returns a new location that is one step down from this location.
   Location get down => rebuild((b) => b.y = y + 1);
 
   /// Returns a new location that is [offset] steps to the left.
-  Location leftOffset(int offset) =>
-      rebuild((b) => b.x = x - offset);
+  Location leftOffset(int offset) => rebuild((b) => b.x = x - offset);
 
   /// Returns a new location that is [offset] steps to the right.
-  Location rightOffset(int offset) =>
-      rebuild((b) => b.x = x + offset);
+  Location rightOffset(int offset) => rebuild((b) => b.x = x + offset);
 
   /// Returns a new location that is [offset] steps up.
-  Location upOffset(int offset) =>
-      rebuild((b) => b.y = y - offset);
+  Location upOffset(int offset) => rebuild((b) => b.y = y - offset);
 
   /// Returns a new location that is [offset] steps down.
-  Location downOffset(int offset) =>
-      rebuild((b) => b.y = y + offset);
+  Location downOffset(int offset) => rebuild((b) => b.y = y + offset);
 
   /// Pretty print a location as a (x,y) coordinate.
   String prettyPrint() => '($x,$y)';
 
-  /// Constructor for [Location].
-  factory Location([
-    void Function(LocationBuilder)? updates,
-  ]) = _$Location;
+  /// Returns a new location built from [updates].
+  factory Location([void Function(LocationBuilder)? updates]) = _$Location;
 
   Location._();
 
   /// Returns a location at the given coordinates.
   factory Location.at(int x, int y) {
-    return Location(
-      (b) => b
+    return Location((b) {
+      b
         ..x = x
-        ..y = y,
-    );
+        ..y = y;
+    });
   }
 }
 
@@ -76,9 +68,11 @@ enum Direction {
 }
 
 /// A word in a crossword.
+///
+/// This is a word at a location in a crossword, in either the across
+/// or down direction.
 abstract class CrosswordWord
     implements Built<CrosswordWord, CrosswordWordBuilder> {
-  /// Serializes and deserializes the [CrosswordWord] class.
   static Serializer<CrosswordWord> get serializer =>
       _$crosswordWordSerializer;
 
@@ -91,11 +85,8 @@ abstract class CrosswordWord
   /// The direction of this word in the crossword.
   Direction get direction;
 
-  /// Compare two CrosswordWord objects by coordinates.
-  static int locationComparator(
-    CrosswordWord a,
-    CrosswordWord b,
-  ) {
+  /// Compare two [CrosswordWord] objects by coordinates, x then y.
+  static int locationComparator(CrosswordWord a, CrosswordWord b) {
     final compareRows = a.location.y.compareTo(b.location.y);
     final compareColumns = a.location.x.compareTo(b.location.x);
 
@@ -120,6 +111,8 @@ abstract class CrosswordWord
   }
 
   /// Constructor for [CrosswordWord].
+  ///
+  /// Use [CrosswordWord.word] instead.
   factory CrosswordWord([
     void Function(CrosswordWordBuilder)? updates,
   ]) = _$CrosswordWord;
@@ -129,45 +122,47 @@ abstract class CrosswordWord
 
 /// A character in a crossword.
 ///
-/// A character can be part of an across word, a down word,
-/// or both, but never neither.
+/// This is a single character at a location in a crossword. It may be part
+/// of an across word, a down word, both, but not neither. The neither
+/// constraint is enforced elsewhere.
 abstract class CrosswordCharacter
     implements Built<CrosswordCharacter, CrosswordCharacterBuilder> {
-  /// Serializes and deserializes the [CrosswordCharacter] class.
   static Serializer<CrosswordCharacter> get serializer =>
       _$crosswordCharacterSerializer;
 
   /// The character at this location.
   String get character;
 
-  /// The across word that contains this character.
+  /// The across word that this character is a part of.
   CrosswordWord? get acrossWord;
 
-  /// The down word that contains this character.
+  /// The down word that this character is a part of.
   CrosswordWord? get downWord;
 
   /// Constructor for [CrosswordCharacter].
+  ///
+  /// [acrossWord] and [downWord] are optional.
   factory CrosswordCharacter.character({
     required String character,
     CrosswordWord? acrossWord,
     CrosswordWord? downWord,
   }) {
-    return CrosswordCharacter(
-      (b) {
-        b.character = character;
+    return CrosswordCharacter((b) {
+      b.character = character;
 
-        if (acrossWord != null) {
-          b.acrossWord.replace(acrossWord);
-        }
+      if (acrossWord != null) {
+        b.acrossWord.replace(acrossWord);
+      }
 
-        if (downWord != null) {
-          b.downWord.replace(downWord);
-        }
-      },
-    );
+      if (downWord != null) {
+        b.downWord.replace(downWord);
+      }
+    });
   }
 
   /// Constructor for [CrosswordCharacter].
+  ///
+  /// Use [CrosswordCharacter.character] instead.
   factory CrosswordCharacter([
     void Function(CrosswordCharacterBuilder)? updates,
   ]) = _$CrosswordCharacter;
@@ -177,46 +172,44 @@ abstract class CrosswordCharacter
 
 /// A crossword puzzle.
 ///
-/// The puzzle constraint follows the English crossword puzzle tradition.
+/// This is a grid of characters with words placed in it. The puzzle
+/// constraint is in the English crossword puzzle tradition.
 abstract class Crossword implements Built<Crossword, CrosswordBuilder> {
   /// Serializes and deserializes the [Crossword] class.
   static Serializer<Crossword> get serializer => _$crosswordSerializer;
 
-  /// Width across the crossword puzzle.
+  /// Width across the [Crossword] puzzle.
   int get width;
 
-  /// Height down the crossword puzzle.
+  /// Height down the [Crossword] puzzle.
   int get height;
 
   /// The words in the crossword.
   BuiltList<CrosswordWord> get words;
 
   /// The characters by location.
+  ///
+  /// Useful for displaying the crossword or checking the proposed solution.
   BuiltMap<Location, CrosswordCharacter> get characters;
 
-  /// Checks whether this crossword is valid.
+  /// Checks if this crossword is valid.
   bool get valid {
-    // Check for duplicate words.
-    final wordSet = words
-        .map((word) => word.word)
-        .toBuiltSet();
+    // Check that there are no duplicate words.
+    final wordSet = words.map((word) => word.word).toBuiltSet();
 
     if (wordSet.length != words.length) {
       return false;
     }
 
-    for (final MapEntry(
-          key: location,
-          value: character,
-        )
+    for (final MapEntry(key: location, value: character)
         in characters.entries) {
-      // Every character must belong to an across or down word.
-      if (character.acrossWord == null &&
-          character.downWord == null) {
+      // All characters must be a part of an across or down word.
+      if (character.acrossWord == null && character.downWord == null) {
         return false;
       }
 
-      // Every character must be inside the crossword.
+      // All characters must be within the crossword puzzle.
+      // No drawing outside the lines.
       if (location.x < 0 ||
           location.y < 0 ||
           location.x >= width ||
@@ -224,8 +217,8 @@ abstract class Crossword implements Built<Crossword, CrosswordBuilder> {
         return false;
       }
 
-      // Characters above and below must belong
-      // to the same down word.
+      // Characters above and below this character must be related
+      // by a vertical word.
       if (characters[location.up] case final up?) {
         if (character.downWord == null) {
           return false;
@@ -246,8 +239,8 @@ abstract class Crossword implements Built<Crossword, CrosswordBuilder> {
         }
       }
 
-      // Characters to the left and right must belong
-      // to the same across word.
+      // Characters to the left and right of this character must be
+      // related by a horizontal word.
       final left = characters[location.left];
 
       if (left != null) {
@@ -277,23 +270,27 @@ abstract class Crossword implements Built<Crossword, CrosswordBuilder> {
   }
 
   /// Add a word to the crossword at the given location and direction.
+  ///
+  /// [requireOverlap] controls whether a newly added word must overlap
+  /// an existing word.
+  ///
+  /// Module 9 uses [requireOverlap] = false when the player is selecting
+  /// words anywhere on the puzzle board.
   Crossword? addWord({
     required Location location,
     required String word,
     required Direction direction,
     bool requireOverlap = true,
   }) {
-    // Do not allow duplicate words.
-    if (words
-        .map((crosswordWord) => crosswordWord.word)
-        .contains(word)) {
+    // Require that the word is not already in the crossword.
+    if (words.map((crosswordWord) => crosswordWord.word).contains(word)) {
       return null;
     }
 
     final wordCharacters = word.characters;
     bool overlap = false;
 
-    // Check each character of the proposed word.
+    // Check that the word fits in the crossword.
     for (final (index, character) in wordCharacters.indexed) {
       final characterLocation = switch (direction) {
         Direction.across => location.rightOffset(index),
@@ -305,24 +302,21 @@ abstract class Crossword implements Built<Crossword, CrosswordBuilder> {
       if (target != null) {
         overlap = true;
 
-        // Characters must match at an intersection.
+        // The overlapping character must match.
         if (target.character != character) {
           return null;
         }
 
-        // Do not allow two across words or two down words
-        // to occupy the same location.
-        if (direction == Direction.across &&
-                target.acrossWord != null ||
-            direction == Direction.down &&
-                target.downWord != null) {
+        // Two words cannot occupy the same direction at the same cell.
+        if (direction == Direction.across && target.acrossWord != null ||
+            direction == Direction.down && target.downWord != null) {
           return null;
         }
       }
     }
 
-    // Once the crossword contains words, new words must overlap
-    // with an existing word when requireOverlap is true.
+    // If overlap is required, make sure that the word overlaps with
+    // an existing word. Skip this test if the crossword is empty.
     if (words.isNotEmpty && !overlap && requireOverlap) {
       return null;
     }
@@ -338,22 +332,21 @@ abstract class Crossword implements Built<Crossword, CrosswordBuilder> {
         ),
     );
 
-    // Only return the candidate if it satisfies all constraints.
+    // Only return a candidate if it satisfies all crossword constraints.
     if (candidate.valid) {
       return candidate;
+    } else {
+      return null;
     }
-
-    return null;
   }
 
-  /// Fill the characters map after the crossword is built.
+  /// As a finalize step, fill in the characters map.
   @BuiltValueHook(finalizeBuilder: true)
   static void _fillCharacters(CrosswordBuilder b) {
     b.characters.clear();
 
     for (final word in b.words.build()) {
-      for (final (idx, character)
-          in word.word.characters.indexed) {
+      for (final (idx, character) in word.word.characters.indexed) {
         switch (word.direction) {
           case Direction.across:
             b.characters.updateValue(
@@ -384,6 +377,9 @@ abstract class Crossword implements Built<Crossword, CrosswordBuilder> {
   }
 
   /// Pretty print a crossword.
+  ///
+  /// Generates the character grid, and lists the down words and across
+  /// words sorted by location.
   String prettyPrintCrossword() {
     final buffer = StringBuffer();
 
@@ -395,10 +391,7 @@ abstract class Crossword implements Built<Crossword, CrosswordBuilder> {
       ),
     );
 
-    for (final MapEntry(
-          key: Location(:x, :y),
-          value: character,
-        )
+    for (final MapEntry(key: Location(:x, :y), value: character)
         in characters.entries) {
       grid[y][x] = character.character;
     }
@@ -411,54 +404,38 @@ abstract class Crossword implements Built<Crossword, CrosswordBuilder> {
     buffer.writeln('Across:');
 
     for (final word
-        in words
-            .where(
-              (word) =>
-                  word.direction == Direction.across,
-            )
-            .toList()
+        in words.where((word) => word.direction == Direction.across).toList()
           ..sort(CrosswordWord.locationComparator)) {
-      buffer.writeln(
-        '${word.location.prettyPrint()}: ${word.word}',
-      );
+      buffer.writeln('${word.location.prettyPrint()}: ${word.word}');
     }
 
     buffer.writeln();
     buffer.writeln('Down:');
 
     for (final word
-        in words
-            .where(
-              (word) =>
-                  word.direction == Direction.down,
-            )
-            .toList()
+        in words.where((word) => word.direction == Direction.down).toList()
           ..sort(CrosswordWord.locationComparator)) {
-      buffer.writeln(
-        '${word.location.prettyPrint()}: ${word.word}',
-      );
+      buffer.writeln('${word.location.prettyPrint()}: ${word.word}');
     }
 
     return buffer.toString();
   }
 
-  /// Constructor for [Crossword].
+  /// Creates a crossword with the given dimensions and optional words.
   factory Crossword.crossword({
     required int width,
     required int height,
     Iterable<CrosswordWord>? words,
   }) {
-    return Crossword(
-      (b) {
-        b
-          ..width = width
-          ..height = height;
+    return Crossword((b) {
+      b
+        ..width = width
+        ..height = height;
 
-        if (words != null) {
-          b.words.addAll(words);
-        }
-      },
-    );
+      if (words != null) {
+        b.words.addAll(words);
+      }
+    });
   }
 
   /// Constructor for [Crossword].
@@ -476,7 +453,6 @@ abstract class Crossword implements Built<Crossword, CrosswordBuilder> {
 /// The work queue contains a crossword and a list of locations to try,
 /// along with candidate words to add to the crossword.
 abstract class WorkQueue implements Built<WorkQueue, WorkQueueBuilder> {
-  /// Serializes and deserializes the [WorkQueue] class.
   static Serializer<WorkQueue> get serializer => _$workQueueSerializer;
 
   /// The crossword the worker is working on.
@@ -488,118 +464,96 @@ abstract class WorkQueue implements Built<WorkQueue, WorkQueueBuilder> {
   /// Known bad locations.
   BuiltSet<Location> get badLocations;
 
-  /// The list of unused candidate words that can be added to this crossword.
+  /// Candidate words.
   BuiltSet<String> get candidateWords;
 
-  /// Returns true if the work queue is complete.
-  bool get isCompleted =>
-      locationsToTry.isEmpty || candidateWords.isEmpty;
+  /// Whether the work queue is completed.
+  bool get isCompleted => locationsToTry.isEmpty;
 
-  /// Create a work queue from a crossword.
-  static WorkQueue from({
+  /// Construct a [WorkQueue] from a [Crossword].
+  factory WorkQueue.from({
     required Crossword crossword,
-    required Iterable<String> candidateWords,
+    required BuiltSet<String> candidateWords,
     required Location startLocation,
-  }) =>
-      WorkQueue(
-        (b) {
-          if (crossword.words.isEmpty) {
-            // Strip candidate words too long to fit in the crossword.
-            b.candidateWords.addAll(
-              candidateWords.where(
-                (word) =>
-                    word.characters.length <= crossword.width,
-              ),
-            );
+  }) {
+    return WorkQueue((b) {
+      if (crossword.words.isEmpty) {
+        // Strip candidate words too long to fit in the crossword.
+        b.candidateWords.addAll(
+          candidateWords.where(
+            (word) => word.characters.length <= crossword.width,
+          ),
+        );
 
-            b.crossword.replace(crossword);
+        b.crossword.replace(crossword);
 
-            b.locationsToTry.addAll({
-              startLocation: Direction.across,
-            });
-          } else {
-            // Assuming words have already been stripped to length.
-            b.candidateWords.addAll(
-              candidateWords.toBuiltSet().rebuild(
-                (b) => b.removeAll(
-                  crossword.words.map((word) => word.word),
+        b.locationsToTry.addAll({
+          startLocation: Direction.across,
+        });
+      } else {
+        // Assuming words have already been stripped to length.
+        b.candidateWords.addAll(
+          candidateWords.toBuiltSet().rebuild(
+            (b) => b.removeAll(
+              crossword.words.map((word) => word.word),
+            ),
+          ),
+        );
+
+        b.crossword.replace(crossword);
+
+        crossword.characters
+            .rebuild(
+              (b) => b.removeWhere((location, character) {
+                if (character.acrossWord != null &&
+                    character.downWord != null) {
+                  return true;
+                }
+
+                final left = crossword.characters[location.left];
+                if (left != null && left.downWord != null) {
+                  return true;
+                }
+
+                final right = crossword.characters[location.right];
+                if (right != null && right.downWord != null) {
+                  return true;
+                }
+
+                final up = crossword.characters[location.up];
+                if (up != null && up.acrossWord != null) {
+                  return true;
+                }
+
+                final down = crossword.characters[location.down];
+                if (down != null && down.acrossWord != null) {
+                  return true;
+                }
+
+                return false;
+              }),
+            )
+            .forEach((location, character) {
+          b.locationsToTry.addAll({
+            location: switch (
+              (character.acrossWord, character.downWord)
+            ) {
+              (null, null) => throw StateError(
+                  'Character is not part of a word',
                 ),
-              ),
-            );
+              (null, _) => Direction.across,
+              (_, null) => Direction.down,
+              (_, _) => throw StateError(
+                  'Character is part of two words',
+                ),
+            },
+          });
+        });
+      }
+    });
+  }
 
-            b.crossword.replace(crossword);
-
-            crossword.characters
-                .rebuild(
-                  (b) => b.removeWhere(
-                    (location, character) {
-                      if (character.acrossWord != null &&
-                          character.downWord != null) {
-                        return true;
-                      }
-
-                      final left =
-                          crossword.characters[location.left];
-
-                      if (left != null &&
-                          left.downWord != null) {
-                        return true;
-                      }
-
-                      final right =
-                          crossword.characters[location.right];
-
-                      if (right != null &&
-                          right.downWord != null) {
-                        return true;
-                      }
-
-                      final up =
-                          crossword.characters[location.up];
-
-                      if (up != null &&
-                          up.acrossWord != null) {
-                        return true;
-                      }
-
-                      final down =
-                          crossword.characters[location.down];
-
-                      if (down != null &&
-                          down.acrossWord != null) {
-                        return true;
-                      }
-
-                      return false;
-                    },
-                  ),
-                )
-                .forEach(
-                  (location, character) {
-                    b.locationsToTry.addAll({
-                      location: switch (
-                        (
-                          character.acrossWord,
-                          character.downWord
-                        )
-                      ) {
-                        (null, null) => throw StateError(
-                            'Character is not part of a word',
-                          ),
-                        (null, _) => Direction.across,
-                        (_, null) => Direction.down,
-                        (_, _) => throw StateError(
-                            'Character is part of two words',
-                          ),
-                      },
-                    });
-                  },
-                );
-          }
-        },
-      );
-
-  /// Remove a location from the work queue.
+  /// Remove a location from the work queue and mark it as bad.
   WorkQueue remove(Location location) => rebuild(
         (b) => b
           ..locationsToTry.remove(location)
@@ -608,8 +562,7 @@ abstract class WorkQueue implements Built<WorkQueue, WorkQueueBuilder> {
 
   /// Update the work queue from a crossword derived from the current
   /// crossword that this work queue is built from.
-  WorkQueue updateFrom(final Crossword crossword) =>
-      WorkQueue.from(
+  WorkQueue updateFrom(final Crossword crossword) => WorkQueue.from(
         crossword: crossword,
         candidateWords: candidateWords,
         startLocation: locationsToTry.isNotEmpty
@@ -652,23 +605,19 @@ abstract class DisplayInfo
   /// The percentage of the grid filled.
   String get gridFilledPercentage;
 
-  /// Create display information from a [WorkQueue].
+  /// Construct a [DisplayInfo] instance from a [WorkQueue].
   factory DisplayInfo.from({
     required WorkQueue workQueue,
   }) {
-    final gridFilled =
-        workQueue.crossword.characters.length /
-        (workQueue.crossword.width *
-            workQueue.crossword.height);
+    final gridFilled = workQueue.crossword.characters.length /
+        (workQueue.crossword.width * workQueue.crossword.height);
 
     final fmt = NumberFormat.decimalPattern();
 
     return DisplayInfo(
       (b) => b
-        ..wordsInGridCount =
-            fmt.format(workQueue.crossword.words.length)
-        ..candidateWordsCount =
-            fmt.format(workQueue.candidateWords.length)
+        ..wordsInGridCount = fmt.format(workQueue.crossword.words.length)
+        ..candidateWordsCount = fmt.format(workQueue.candidateWords.length)
         ..locationsToExploreCount =
             fmt.format(workQueue.locationsToTry.length)
         ..knownBadLocationsCount =
@@ -695,51 +644,216 @@ abstract class DisplayInfo
   DisplayInfo._();
 }
 
-/// Represents the state of the crossword puzzle game.
-///
-/// # Module 9 addition
-///
-/// Module 9 introduces a higher-level game object that keeps
-/// the current crossword state together with the current work queue
-/// and display information.
-///
-/// Keeping this state in a BuiltValue model makes it immutable and
-/// allows Riverpod providers to react cleanly when the game changes.
+/// Creates a puzzle from a crossword and a set of candidate words.
 abstract class CrosswordPuzzleGame
-    implements
-        Built<CrosswordPuzzleGame, CrosswordPuzzleGameBuilder> {
-  /// Serializes and deserializes [CrosswordPuzzleGame].
+    implements Built<CrosswordPuzzleGame, CrosswordPuzzleGameBuilder> {
   static Serializer<CrosswordPuzzleGame> get serializer =>
       _$crosswordPuzzleGameSerializer;
 
-  /// The current crossword being generated.
+  /// The [Crossword] that this puzzle is based on.
   Crossword get crossword;
 
-  /// The current work queue used by the solver.
-  WorkQueue get workQueue;
+  /// The alternate words for each [CrosswordWord] in the crossword.
+  BuiltMap<Location, BuiltMap<Direction, BuiltList<String>>> get alternateWords;
 
-  /// Information displayed to the user about the current solve.
-  DisplayInfo get displayInfo;
+  /// The player's selected words.
+  BuiltList<CrosswordWord> get selectedWords;
 
-  /// Create a new game from a crossword and work queue.
+  /// Check whether a word can be selected.
+  bool canSelectWord({
+    required Location location,
+    required String word,
+    required Direction direction,
+  }) {
+    final crosswordWord = CrosswordWord.word(
+      word: word,
+      location: location,
+      direction: direction,
+    );
+
+    if (selectedWords.contains(crosswordWord)) {
+      return true;
+    }
+
+    var puzzle = this;
+
+    // If another word is already selected at the same location and
+    // direction, remove it temporarily before checking the new word.
+    if (puzzle.selectedWords
+        .where(
+          (b) =>
+              b.direction == direction &&
+              b.location == location,
+        )
+        .isNotEmpty) {
+      puzzle = puzzle.rebuild(
+        (b) => b
+          ..selectedWords.removeWhere(
+            (selectedWord) =>
+                selectedWord.location == location &&
+                selectedWord.direction == direction,
+          ),
+      );
+    }
+
+    return puzzle.crosswordFromSelectedWords.addWord(
+          location: location,
+          word: word,
+          direction: direction,
+          requireOverlap: false,
+        ) !=
+        null;
+  }
+
+  /// Select or deselect a word.
+  CrosswordPuzzleGame? selectWord({
+    required Location location,
+    required String word,
+    required Direction direction,
+  }) {
+    final crosswordWord = CrosswordWord.word(
+      word: word,
+      location: location,
+      direction: direction,
+    );
+
+    // Selecting an already-selected word deselects it.
+    if (selectedWords.contains(crosswordWord)) {
+      return rebuild(
+        (b) => b.selectedWords.remove(crosswordWord),
+      );
+    }
+
+    var puzzle = this;
+
+    // If another word is already selected at the same location and
+    // direction, remove it before adding the new selection.
+    if (puzzle.selectedWords
+        .where(
+          (b) =>
+              b.direction == direction &&
+              b.location == location,
+        )
+        .isNotEmpty) {
+      puzzle = puzzle.rebuild(
+        (b) => b
+          ..selectedWords.removeWhere(
+            (selectedWord) =>
+                selectedWord.location == location &&
+                selectedWord.direction == direction,
+          ),
+      );
+    }
+
+    // Check if the selected word meshes with the already selected words.
+    //
+    // This version of the crossword does not enforce overlap to allow
+    // the player to select words anywhere on the grid.
+    final updatedSelectedWordsCrossword =
+        puzzle.crosswordFromSelectedWords.addWord(
+      location: location,
+      word: word,
+      direction: direction,
+      requireOverlap: false,
+    );
+
+    // Make sure the selected word is in the crossword or is an
+    // alternate word.
+    if (updatedSelectedWordsCrossword != null) {
+      if (puzzle.crossword.words.contains(crosswordWord) ||
+          puzzle.alternateWords[location]?[direction]?.contains(word) ==
+              true) {
+        return puzzle.rebuild(
+          (b) => b
+            ..selectedWords.add(
+              CrosswordWord.word(
+                word: word,
+                location: location,
+                direction: direction,
+              ),
+            ),
+        );
+      }
+    }
+
+    return null;
+  }
+
+  /// The crossword from the selected words.
+  Crossword get crosswordFromSelectedWords => Crossword.crossword(
+        width: crossword.width,
+        height: crossword.height,
+        words: selectedWords,
+      );
+
+  /// Test if the puzzle is solved.
   ///
-  /// The [displayInfo] is calculated automatically from the
-  /// supplied [workQueue].
+  /// This allows for the possibility of multiple solutions.
+  bool get solved =>
+      crosswordFromSelectedWords.valid &&
+      crosswordFromSelectedWords.words.length == crossword.words.length &&
+      crossword.words.isNotEmpty;
+
+  /// Create a crossword puzzle game from a crossword and a set of
+  /// candidate words.
   factory CrosswordPuzzleGame.from({
     required Crossword crossword,
-    required WorkQueue workQueue,
+    required BuiltSet<String> candidateWords,
   }) {
+    // Remove all of the currently used words from the list of candidates.
+    candidateWords = candidateWords.rebuild(
+      (b) => b.removeAll(
+        crossword.words.map((word) => word.word),
+      ),
+    );
+
+    // This is the list of alternate words for each word in the crossword.
+    var alternates =
+        BuiltMap<Location, BuiltMap<Direction, BuiltList<String>>>();
+
+    // Build the alternate words for each word in the crossword.
+    for (final crosswordWord in crossword.words) {
+      final alternateWords = candidateWords.toBuiltList().rebuild(
+            (b) => b
+              ..where(
+                (word) => word.length == crosswordWord.word.length,
+              )
+              ..shuffle()
+              ..take(4)
+              ..sort(),
+          );
+
+      candidateWords = candidateWords.rebuild(
+        (b) => b.removeAll(alternateWords),
+      );
+
+      alternates = alternates.rebuild(
+        (b) => b.updateValue(
+          crosswordWord.location,
+          (b) => b.rebuild(
+            (b) => b.updateValue(
+              crosswordWord.direction,
+              (b) => b.rebuild(
+                (b) => b.replace(alternateWords),
+              ),
+              ifAbsent: () => alternateWords,
+            ),
+          ),
+          ifAbsent: () =>
+              <Direction, BuiltList<String>>{
+            crosswordWord.direction: alternateWords,
+          }.build(),
+        ),
+      );
+    }
+
     return CrosswordPuzzleGame(
       (b) => b
         ..crossword.replace(crossword)
-        ..workQueue.replace(workQueue)
-        ..displayInfo.replace(
-          DisplayInfo.from(workQueue: workQueue),
-        ),
+        ..alternateWords.replace(alternates),
     );
   }
 
-  /// Create a new [CrosswordPuzzleGame].
   factory CrosswordPuzzleGame([
     void Function(CrosswordPuzzleGameBuilder)? updates,
   ]) = _$CrosswordPuzzleGame;
@@ -747,7 +861,7 @@ abstract class CrosswordPuzzleGame
   CrosswordPuzzleGame._();
 }
 
-/// Construct serialization/deserialization code for the data model.
+/// Construct the serialization/deserialization code for the data model.
 @SerializersFor([
   Location,
   Crossword,
@@ -755,10 +869,6 @@ abstract class CrosswordPuzzleGame
   CrosswordCharacter,
   WorkQueue,
   DisplayInfo,
-
-  // Module 9:
-  // CrosswordPuzzleGame must be included here so that
-  // built_value generates its serializer as well.
   CrosswordPuzzleGame,
 ])
 final Serializers serializers = _$serializers;
